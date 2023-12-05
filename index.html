@@ -1,20 +1,124 @@
 <!DOCTYPE html>
-<html lang="ja">
-
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ファイルダウンロードページ</title>
+  <meta charset="UTF-8">
+  <title>オープンデータMapping</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" />
 </head>
 
 <body>
+  <select id="area">
+    <option value=0>表示データを選択してください</option>
+    <option value=1>かほく市 指定緊急避難場所一覧</option>
+    <option value=2>かほく市 子育て施設一覧'</option>
+  </select>
+  <div id="mapid" style="width: 100%; height: 600px"></div>
+  <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.11/jquery.csv.min.js"></script>
+  <script>
 
-    <h1>ファイルをダウンロード</h1>
+    //デフォルトの表示位置を選択
+    var map = L.map('mapid').setView([36.714254, 136.693784], 16);
+    
+    //右下にリンクを表示
+    var gsi = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+      attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>地理院タイル</a>"
+    });
+    
+    //右下にリンクを表示
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+    });
 
-    <p>
-        <a href="M5Stack/温度計/main9.m5f" download>M5Stackで作る温度計</a>
-    </p>
+    //右上に地図種類の選択ボタンを表示
+    var baseMaps = {
+      "地理院地図" : gsi,
+      "OpenStreetMap" : osm
+    };
+    L.control.layers(baseMaps).addTo(map);
+    gsi.addTo(map);
+    
+	//文字コードを設定
+	$.ajaxSetup({
+		beforeSend: function(xhr){
+			xhr.overrideMimeType("text/html;charset=Shift_JIS");
+		}
+	});
+	
+	//データを地図上に表示する
+	function dataMapping(placeData)
+	{
+		//画面表示
+		for (let i = 1; i < placeData.length; i++) {
+			var marker = L.marker([placeData[i][1], placeData[i][2]]).addTo(map);
+			marker.bindPopup(placeData[i][0]).openPopup();
+		}
+	}
+	
+	//CSVデータより必要なカラムを配列に格納して返す
+	function getColumnData(fromLine, indexList)
+	{
+		toLine = [];
+		for (let i = 0; i < indexList.length; i++) {
+			toLine[i] = fromLine[indexList[i]];
+		}
+		
+		return toLine;
+	}
+	
+	//URLのCSVデータから地図上にデータをMappingする
+	function MappingOpenData(url, indexList)
+	{
+		var placeData = [];
+		
+		//データを取得
+	    $.ajax({
+	      url: url
+	    }).done(function(data, textStatus, jqXHR){
+			alert("success")
+			
+			var csv = $.csv.toArrays(data);
+			for (let i = 1; i < csv.length; i++)
+			{
+				//必要なカラムデータの取得
+				placeData[i] = getColumnData(csv[i], indexList)
+			}
+			
+			//データの表示
+			dataMapping(placeData)
+			
+		}).fail(function(jqXHR, textStatus, errorThrown){
+			alert("Data access Faild: " + textStatus)
+		});
+	}
+	
+	
+	//Main処理
+    
+	//-- OpenDataList --
+	//名前, URL, 取得カラム
+	let openDataList = [
+		[0,'名前','情報','URL',[0,0,0]],
+		[1, 'かほく市','指定緊急避難場所一覧','https://xxxxxx/MyPage/kahoku_evacuation_space.csv',[2,12,13]],
+		[1, 'かほく市','子育て施設一覧','https://xxxxx/MyPage/kahoku_preschool.csv',[4,15,16]]
+	];
+	
+	//表示データの選択
+	$('#area').change(function() {
+		var val = $('option:selected').val();
+		
+		for (let i = 0; i < openDataList.length; i++) {
+			if( openDataList[i][0] === 0 ) continue;
+			
+			if( i == val ) {
+				//データ取得と表示
+				MappingOpenData(openDataList[i][3], openDataList[i][4]);
+			}
+		}
+	})
 
+        
+  </script>
 </body>
-
 </html>
