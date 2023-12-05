@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!-- 使い方 
+ 1. index.htmlをサーバ上に配置しオープンデータ(csvファイル)をMyPage配下に保存する
+ 2. 地図上に表示させる名前、経度、緯度についてCSVのカラム番号をJSONデータに登録する
+-->
 <html>
 <head>
   <meta charset="UTF-8">
@@ -97,7 +101,7 @@
 	//Main処理
     
 	//-- OpenDataList --
-	//名前, URL, 取得カラム
+	//Flag(0:non,1:display), 名前, URL, 取得カラム
 	let openDataList = [
 		[0,'名前','情報','URL',[0,0,0]],
 		[1, 'かほく市','指定緊急避難場所一覧','https://xxxxxx/MyPage/kahoku_evacuation_space.csv',[2,12,13]],
