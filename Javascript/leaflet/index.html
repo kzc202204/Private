@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!-- 使い方 
- 1. index.htmlをサーバ上に配置しオープンデータ(csvファイル)をMyPage配下に保存する
- 2. 地図上に表示させる名前、経度、緯度についてCSVのカラム番号をJSONデータに登録する
--->
 <html>
 <head>
   <meta charset="UTF-8">
@@ -13,8 +9,6 @@
 <body>
   <select id="area">
     <option value=0>表示データを選択してください</option>
-    <option value=1>かほく市 指定緊急避難場所一覧</option>
-    <option value=2>かほく市 子育て施設一覧'</option>
   </select>
   <div id="mapid" style="width: 100%; height: 600px"></div>
   <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
@@ -51,13 +45,24 @@
 	});
 	
 	//データを地図上に表示する
-	function dataMapping(placeData)
+	function dataMapping(placeData, deleteList)
 	{
 		//画面表示
 		for (let i = 1; i < placeData.length; i++) {
 			var marker = L.marker([placeData[i][1], placeData[i][2]]).addTo(map);
 			marker.bindPopup(placeData[i][0]).openPopup();
+			deleteList.push(marker);
 		}
+	}
+
+	//表示データを削除する
+	function deleteMapping(deleteData)
+	{
+		//画面表示
+		for (let i = 0; i < deleteData.length; i++) {
+			map.removeLayer(deleteData[i]);
+		}
+		deleteData = [];
 	}
 	
 	//CSVデータより必要なカラムを配列に格納して返す
@@ -72,7 +77,7 @@
 	}
 	
 	//URLのCSVデータから地図上にデータをMappingする
-	function MappingOpenData(url, indexList)
+	function MappingOpenData(url, indexList, deleteData)
 	{
 		var placeData = [];
 		
@@ -90,24 +95,44 @@
 			}
 			
 			//データの表示
-			dataMapping(placeData)
+			dataMapping(placeData,　deleteData)
 			
 		}).fail(function(jqXHR, textStatus, errorThrown){
 			alert("Data access Faild: " + textStatus)
 		});
 	}
 	
-	
-	//Main処理
-    
-	//-- OpenDataList --
-	//Flag(0:non,1:display), 名前, URL, 取得カラム
+	// --------------------
+	// Main処理
+    // --------------------
+
+	// -- OpenDataList --
+	// 名前, URL, 取得カラム番号(名前,経度,緯度)
 	let openDataList = [
-		[0,'名前','情報','URL',[0,0,0]],
-		[1, 'かほく市','指定緊急避難場所一覧','https://xxxxxx/MyPage/kahoku_evacuation_space.csv',[2,12,13]],
-		[1, 'かほく市','子育て施設一覧','https://xxxxx/MyPage/kahoku_preschool.csv',[4,15,16]]
+		[0,'','表示データを選択してください','URL',[0,0,0]]
+		,[1, 'xxx市','緊急避難場所一覧','https://xxxxxxx/xxx.csv',[2,12,13]]
+		,[1, 'xxx市','子育て施設一覧','https://xxxxxxx/xxx.csv',[4,15,16]]
+		,[1, 'xxx市','無料Wifiスポット','https://xxxxxxx/xxx.csv',[5,15,16]]	
+		,[1, 'xxx市','観光施設一覧','https://xxxxxxx/xxx.csv',[4,18,19]]
+		,[1, 'xxx市','公衆トイレ一覧','https://xxxxxxx/xxx.csv',[4,15,16]]	
 	];
 	
+	//削除用保存リスト
+	let deleteDataList = Array(openDataList.length);
+	for (let i = 0; i < deleteDataList.length; i++) {
+		deleteDataList[i] = [];
+	}
+
+	//表示選択肢の生成
+	$(function(){
+		for (let i = 1; i < openDataList.length; i++) {
+			if( openDataList[i][0] === 0 ) continue;
+
+    		//末尾に追加
+    		$('#area').append($('<option>').html(openDataList[i][1] + " " + openDataList[i][2]).val(i));
+		}
+	});
+
 	//表示データの選択
 	$('#area').change(function() {
 		var val = $('option:selected').val();
@@ -117,11 +142,13 @@
 			
 			if( i == val ) {
 				//データ取得と表示
-				MappingOpenData(openDataList[i][3], openDataList[i][4]);
+				MappingOpenData(openDataList[i][3], openDataList[i][4], deleteDataList[i]);
+			}else{
+				//データ表示の削除
+				deleteMapping(deleteDataList[i]);
 			}
 		}
 	})
-
         
   </script>
 </body>
