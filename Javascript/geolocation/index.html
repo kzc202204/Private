@@ -13,6 +13,16 @@
 		longitude: 0,
 	};
 
+	/* Geolocation API 使用確認 */
+	if( navigator.geolocation )
+	{
+		// True
+		alert( "ブラウザの位置情報を有効にすることで、現在位置を取得することができます。" ) ;
+	} else {
+		// False
+		alert( "あなたの端末では、現在位置を取得できません。" ) ;
+	}
+	
 	/* 位置情報のマップ表示 */
 	function setPositionMap(position) {
 		
