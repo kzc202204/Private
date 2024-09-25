@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>!ようこそ！</title>
+    <style>
+        /* ポップアップのスタイル */
+        #popup, #popup1 {
+            display: none; /* 初期は非表示 */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        /* 背景の暗幕 */
+        #overlay {
+            display: none; /* 初期は非表示 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        /* 背景の暗幕 */
+        #overlay1 {
+            display: none; /* 初期は非表示 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 200);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <h1>金沢IT部活ホームページ</h1>
+    <p>このページは「金沢IT部活」のテストページです</p>
+
+    <!-- ポップアップ -->
+    <div id="overlay"></div>
+    <div id="popup">
+		<h1><b>重大な警告!!<font color="#fd7e00">(セキュリティ上深刻な問題)</font></b></h1>
+        <p>あなたのパソコンで<font color="red"><b>ウイルス</b></font>の感染が検知されました。</p>
+		<b>お使いのWindowsバージョン: Windows 11</b>
+        <p><b>システムの損傷、アプリ、写真やその他のファイルの損失を防ぐために、ウイルスを即座に削除する必要があります。</b></p>
+		<b><font color="red">個人情報とパスワード情報がリスクにさらされています</font></b>
+		<p>ほかのダメージを避けるために、<font color="red"><b>[今すぐスキャン]</b></font>をクリックしてその他のウイルスの確認と駆除を即座に実行してください</p>
+        <button id="closePopup"><b>今すぐスキャン</button>
+		<button id="cancelPopup"><b>キャンセル</button>
+    </div>
+
+    <div id="overlay1"></div>
+    <div id="popup1">
+		<h1><b>最終警告</b></h1>
+        <font color="red"><b>
+		<p><b>あなたのパソコンはウイルスに汚染されています。</b></p>
+		<b><font color="red">このままスキャンを実施しないとシステム、ファイルの破壊が進み、パソコンが起動しなくなる恐れがあります</font></b>
+        <p><b>システムの損傷、アプリ、写真やその他のファイルの損失を防ぐために、ウイルスを即座に削除する必要があります。</b></p>
+		<p>ほかのダメージを避けるために、<font color="red"><b>[今すぐスキャン]</b></font>をクリックしてその他のウイルスの確認と駆除を即座に実行してください</p>
+		<p>スキャンを実施しますか？</p>
+		</b></font>
+        <button id="closePopup1"><b>今すぐスキャン</button>
+		<button id="cancelPopup1"><b>キャンセル</button>
+    </div>
+
+
+    <script>
+        // ページが読み込まれたときに実行される処理
+        window.onload = function() {
+            // 3秒後にポップアップを表示
+            setTimeout(showPopup, 3000);
+
+            // 閉じるボタンのイベントを設定
+            document.getElementById("closePopup").onclick = function() {
+                closePopup();
+            };
+            // キャンセルボタンのイベントを設定
+            document.getElementById("cancelPopup").onclick = function() {
+                cancelPopup();
+            };
+
+        };
+
+        // 基本ポップアップを表示する関数
+        function showPopup() {
+            document.getElementById("popup").style.display = "block";
+            document.getElementById("overlay").style.display = "block";
+        }
+
+        // 基本ポップアップを閉じる関数
+        function closePopup() {
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+            document.getElementById("popup1").style.display = "none";
+            document.getElementById("overlay1").style.display = "none";
+
+			alert("取得完了!!\nあなたのパソコンから個人情報、写真、連絡先情報をクラウドにアップロードしました。この情報を削除するためには3日以内に500$を送金してください。期限を過ぎても確認できない場合はインターネット上に公開されます。\n\n振り込み先：xxxx銀行\n口座番号:xxx-xxx-xxx\n期日:2024/9/30 12:00:00")
+        }
+
+        // キャンセルポップアップを表示する関数
+        function showCanclePopup() {
+            document.getElementById("popup1").style.display = "block";
+            document.getElementById("overlay1").style.display = "block";
+        }
+
+        // キャンセルボタン
+        function cancelPopup() {
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+            document.getElementById("popup1").style.display = "none";
+            document.getElementById("overlay1").style.display = "none";
+
+			setTimeout(showCanclePopup, 1000);
+
+            // 閉じるボタンのイベントを設定
+            document.getElementById("closePopup").onclick = function() {
+                closePopup();
+            };
+            // キャンセルボタンのイベントを設定
+            document.getElementById("cancelPopup").onclick = function() {
+                cancelPopup();
+            };
+
+            // 閉じるボタンのイベントを設定
+            document.getElementById("closePopup1").onclick = function() {
+                closePopup();
+            };
+            // キャンセルボタンのイベントを設定
+            document.getElementById("cancelPopup1").onclick = function() {
+                cancelPopup();
+            };
+        }
+
+    </script>
+</body>
+</html>
