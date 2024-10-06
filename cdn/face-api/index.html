@@ -27,7 +27,7 @@
         video.src = window.URL.createObjectURL(stream);
       }
       // (1)モデル読み込み　※フォルダを指定
-      await faceapi.nets.tinyFaceDetector.load("ttps://raw.githubusercontent.com/kzc202204/Private/main/cdn/face-api/models/");
+      await faceapi.nets.tinyFaceDetector.load("https://raw.githubusercontent.com/kzc202204/Private/main/cdn/face-api/models/");
     }
 	
     const onPlay = () => {
