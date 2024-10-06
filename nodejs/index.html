@@ -1,1 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Chat app</title>
+  <style>
+    * {margin:0; padding:0; box-sizing:border-box; }
+    #chatSec {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    background: #fafafa;
+    }
+    .chatBlock {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 0 3px 0 rgb(0 0 0 / 12%), 0 2px 3px 0 rgb(0 0 0 / 22%);
+    transition: 0.2s ease-in-out;
+    border-radius: 3px;
+    }
+    /* 見出し */
+    .chatBlock h1 {
+    background: #6bb6ff;
+    color: #FFF;
+    padding: 10px 25px;
+    border-radius: 3px 3px 0 0;
+    }
+    /* チャットの中 */
+    ul#timeline {
+    padding: 20px 25px;
+    width: 100%;
+    height: 400px;
+    overflow-y: scroll;
+    flex-direction: column;
+    display: flex;
+    gap: 15px;
+    max-height: 400px;
+    }
+    ul#timeline li {
+    list-style: none;
+    display: block;
+    background: #eee;
+    position: relative;
+    padding: 12px 15px;
+    animation: fadeIn 0.7s ease 0s 1 normal;
+    }
+    ul#timeline li span {
+    position: relative;
+    line-height: 1.4;
+    display: inline-block;
+    }
+    ul#timeline li time {
+    font-size: 0.7rem;
+    position: absolute;
+    right: 8px;
+    bottom: 5px;
+    color: #707070;
+    }
+	
+    /* 新規チャット */
+    ul#timeline li:last-child {
+    background: #e8f3ff;
+    }
+    /* フォーム */
+    form#chatSend {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 25px;
+    background: #ecf6ff;
+    border-radius: 0 0 3px 3px;
+    }
+    input#chatText {
+    line-height: 40px;
+    border: solid 1px #eee;
+    background: #FFF;
+    text-indent: 10px;
+    font-size: 1.1rem;
+    display: inline-block;
+    width: calc(100% - 100px);
+    }
+    input#chatText:focus-visible {
+    outline-color: #6bb6ff;
+    }
+    button#sendButton {
+    width: 90px;
+    border: none;
+    background: #6bb6ff;
+    color: #FFF;
+    letter-spacing: 0.07rem;
+    font-weight: 500;
+    border-radius: 3px;
+    font-size: 1.03rem;
+    }
+    /* アニメーション */
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+  </style>
+</head>
+<body>
+<section id="chatSec">
+    <div class="chatBlock">
+        <h1>Chat app</h1>
+        <ul id="timeline"></ul>
+        <form id="chatSend" action="">
+            <input id="chatText" autocomplete="off"><button id="sendButton">送信</button>
+        </form>
+    </div>
+</section>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	
+	//サーバの接続
+    let socket = io.connection();
+	
+	//チャット領域
+    const timeline = document.getElementById("timeline");	//msg表示領域
+    const form = document.getElementById("chatSend");		//Form
+    const input = document.getElementById("chatText");		//msg入力領域
+    const messages = document.getElementById("sendButton");	//ボタン
 
+	//FormのSubmitイベントハンドラ(CL->SV)
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit("chat msg", input.value);
+        input.value = "";
+      }
+    });
+	
+	//サーバからのメッセージ受信(SV->CL)
+    socket.on("chat res", function (msg) {
+	  
+	  // [チャット領域]
+	  // <ul>
+	  //   <li><span>message...</span><timeyyyy/mm/dd</time></li> ★追加
+      //   <li><span>message...</span><timeyyyy/mm/dd</time></li> ★追加
+      // </ul>
+	　
+      // <li>生成
+      let item = document.createElement("li");
+      // 現在時刻の取得
+      let posttime = new Date().toLocaleString(); 
+      // <li>にメッセージと現在時刻を挿入
+      item.innerHTML = '<span>' + msg + '</span><time>' + posttime + '</time>';
+      
+      // liタグを追加(末尾msgにスクロール)
+      timeline.appendChild(item);
+      timeline.scrollTo(0, timeline.scrollHeight);
+    });
+  </script>
+</body>
+</html>
