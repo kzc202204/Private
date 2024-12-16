@@ -1,1 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web Serial（Write）</title>
+  </head>
 
+  <body>
+    <h1>Web Serial</h1>
+    <button onclick="onStartButtonClick()">接続</button>
+    <button onclick="onEndButtonClick()">切断</button>
+    <br>
+    <button id="write01">LED0</button>
+    <button id="write02">LED1</button>
+    <button onclick="onReadText()">read</button>
+    
+    <div id="textarea"></div>
+    
+    <script>
+      const button01 = document.getElementById("write01");
+      const button02 = document.getElementById("write02");
+      const textarea = document.getElementById("textarea");
+      button01.addEventListener("click", function () {writeText('LED0\r\n');}, false);
+      button02.addEventListener("click", function () {writeText('LED1\r\n');}, false);
+
+      let port;
+
+      async function onStartButtonClick() {
+        try {
+          port = await navigator.serial.requestPort();
+          await port.open({ baudRate: 115200 });
+          console.log("接続");
+        } catch (e) {
+          console.log("Error:" + e );
+        }
+      }
+
+      async function onEndButtonClick() {
+        if(port != 'undefined') {
+          alert("切断しました");
+          await port.close();
+          port = 'undefined';
+        }
+      }
+      
+      async function writeText(text) {
+        const encoder = new TextEncoder();
+        const writer = port.writable.getWriter();
+        await writer.write(encoder.encode(text));
+        console.log("テキスト書き込み: " + text);
+        writer.releaseLock();
+      }
+
+	  // Listen to data coming from the serial device.
+      async function onReadText() {
+        const reader = port.readable.getReader();
+	    while (true) {
+	      const { value, done } = await reader.read();
+	      if (done) {
+    	    // reader cancel.
+    	    reader.releaseLock();
+    	    break;
+  	      }
+          
+  	      // value is a Uint8Array.
+          var str = new TextDecoder().decode(value);
+          str = str.replace(/\n/g, "<br>");
+  	      textarea.innerHTML += str;
+          console.log(str);
+        }
+      }
+    </script>
+  </body>
+</html>
