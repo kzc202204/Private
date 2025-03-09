@@ -1,1 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>じゃんけんゲーム</title>
+	<style>
+		body {
+	      font-family: Arial, sans-serif;
+	    }
+	    .buttons {
+	      margin: 20px 0;
+	    }
+	    button {
+	      font-size: 16px;
+	      margin-right: 10px;
+	      padding: 10px 20px;
+	    }
+	    #result, #table {
+	      margin: 20px 0;
+	      white-space: pre-wrap;
+	      font-family: monospace;
+	    }
+	</style>
+</head>
+<body>
+	<h1>じゃんけんゲーム</h1>
+	<div class="buttons">
+		<button onclick="playRound(0)">グー</button>
+		<button onclick="playRound(1)">チョキ</button>
+		<button onclick="playRound(2)">パー</button>
+	</div>
+	<h2><div id="WinLoss"></div></h2>
+	<div id="cpu"></div>
+	<div id="result"></div>
+	<div id="table"></div>
+  	<script>
+		
+		// -----------------------------------------------------------
+		// Initialize
+		// -----------------------------------------------------------
+	    // Q学習のパラメータ
+	    let a = 0.2;	// 学習率
+	    let r = 0.99; 	// 割引率
+		
+		// 統計
+		let all =0
+		let win = 0
+		let loss = 0
+		let ties = 0
+		let epsilon = 0
+		
+	    // 初期化:3×3の価値テーブル（行：コンピュータの行動, 列：ユーザの状態）
+	    let vTable = [];
+	    for (let i = 0; i < 3; i++) 
+		{
+	    	let row = [];
+	    	for (let j = 0; j < 3; j++)
+			{
+	    		row.push(Math.random());
+	    	}
+	    	vTable.push(row);
+	    }
+		
+	    // 前回の状態と行動（初期値は0）
+	    let old_stat = 0;
+	    let old_act = 0;
+		let old_value = 0;
+		
+		// -----------------------------------------------------------
+		// Function List
+		// -----------------------------------------------------------
+	    // 価値テーブルの内容を画面に表示
+	    function printValueTable()
+		{
+	    	let tableText = "価値テーブル:\n";
+	    	vTable.forEach(row => {
+	    		tableText += row.map(x => x.toFixed(2)).join(", ") + "\n";
+	   		});
+	    	document.getElementById("table").textContent = tableText;
+	    }
+		
+	    // 数値をじゃんけんの手の文字列に変換
+	    function actionString(action)
+		{
+	    	if (action === 0) {
+	    		return "グー";
+	    	} else if (action === 1) {
+	       		return "チョキ";
+	    	} else {
+	    		return "パー";
+	    	}
+	    }
+		
+	    // 報酬に応じた文字列を返す関数
+	    function rewardString(reward)
+		{
+			text="";
+			all++;
+	    	if (reward === 0) {
+				ties++;
+	    		text="あいこ";
+	    	} else if (reward === 1) {
+	     		loss++;
+				text="あなたの負け";
+	     	} else {
+				win++;
+	    		text="あなたの勝ち";
+	    	}
+			
+			text += "(勝ち:" + win + "負け:" + loss + "あいこ:" + ties + ")";
+			return text;
+	    }
 
+	    // テーブルから値を取得
+		// 引数
+		//  stat: ユーザの行動
+		//  act:  コンピュータ行動
+	    function getValueTable(stat, act)
+		{
+	    	return vTable[act][stat];
+	    }
+
+	    // ある状態(stat)に対して、最大の価値とそのときの行動を返す関数
+	    // 戻り値：[最大値, 対応するaction]
+	    function getMaxValue(stat) {
+	      const index = parseInt(stat, 10);
+	      let maxVal = vTable[0][index];
+	      let maxAct = 0;
+	      for (let i = 0; i < vTable.length; i++) {
+	        if (vTable[i][index] > maxVal) {
+	          maxVal = vTable[i][index];
+	          maxAct = i;
+	        }
+	      }
+	      return [maxVal, maxAct];
+	    }
+
+	    // 価値テーブルの更新
+	    function setValueTable(val, stat, act)
+		{
+	      vTable[act][stat] = val;
+	    }
+
+	    // ユーザの状態(stat)とコンピュータの行動(act)に応じた報酬を返す関数
+	    // ルール：グー(0) > チョキ(1), チョキ(1) > パー(2), パー(2) > グー(0)
+	    function getReward(stat, act) {
+	    	let reward;
+	    	if (stat === 0) { // ユーザ：グー
+		    	if (act === 0) {
+		        	reward = 0;
+		        } else if (act === 1) {
+		        	reward = -1;
+		        } else {
+		        	reward = 1;
+		        }
+		    } else if (stat === 1) { // ユーザ：チョキ
+				if (act === 0) {
+					reward = 1;
+				} else if (act === 1) {
+					reward = 0;
+				} else {
+					reward = -1;
+				}
+		    } else { // ユーザ：パー
+				if (act === 0) {
+					reward = -1;
+				} else if (act === 1) {
+					reward = 1;
+				} else {
+					reward = 0;
+				}
+		    }
+			return reward;
+	    }
+
+	    // ユーザがボタンをクリックしたときの処理
+	    function playRound(stat) {
+	      let resultText = "";
+		  epsilon = 0.5 * (r ** all);
+	      let e = Math.random();
+	      //resultText += "乱数: " + e.toFixed(2) + "\n";
+          
+	      // 現在の状態における最大価値と行動
+	      let [value, act] = getMaxValue(stat);
+		  
+	      // ランダム判定: もし価値が乱数より低ければランダム行動を選択
+	      //if (epsilon < e) {
+	      //  resultText += "Random!\n";
+	      //  act = Math.floor(Math.random() * 3);
+	      //  value = getValueTable(stat, act);
+	      //}
+
+	      // 報酬の判定
+	      let reward = getReward(stat, act);
+
+		  // 勝ち負け判定
+		  WinLossText = rewardString(reward);
+		  document.getElementById("WinLoss").textContent = WinLossText;
+		  CPUText = "(CPU: " + actionString(act) + ")\n";
+		  document.getElementById("cpu").textContent = CPUText;
+
+	      // Q学習による価値更新計算
+	      // Q = (1 - a) * 旧状態の価値 + a * (reward + r * 現状態の価値)
+	      let Q = (1 - a) * old_value + a * (reward + (r * value));
+
+	      // 価値テーブル更新（前状態・前行動）
+	      setValueTable(Q, old_stat, old_act);
+		  //setValueTable(Q, stat, act);
+		  
+	      // 状態更新
+	      old_stat = stat;
+	      old_act = act;
+		  old_value = value;
+	      
+	      resultText += "----------------\n";
+	      resultText += "epsilion: " + epsilon.toFixed(2) + "\n";
+          resultText += "学習率: " + a.toFixed(2) + "\n";
+	      resultText += "割引率: " + r.toFixed(2) + "\n";
+	      resultText += "報酬: " + reward + "\n";
+	      resultText += "価値Q: " + Q.toFixed(4) + "\n";
+	      resultText += "User: " + stat + ", Value: " + value.toFixed(4) + "\n";
+	      resultText += "----------------\n";
+
+	      document.getElementById("result").textContent = resultText;
+	      printValueTable();
+	    }
+		
+	    // 初期の価値テーブル表示
+	    printValueTable();
+ 	</script>
+</body>
+</html>
