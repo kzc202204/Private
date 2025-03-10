@@ -144,7 +144,7 @@
 	    // ユーザの状態(stat)とコンピュータの行動(act)に応じた報酬を返す関数
 	    // ルール：グー(0) > チョキ(1), チョキ(1) > パー(2), パー(2) > グー(0)
 	    function getReward(stat, act) {
-	    	let reward;
+	    	let reward=0;
 	    	if (stat === 0) { // ユーザ：グー
 		    	if (act === 0) {
 		        	reward = 0;
@@ -153,24 +153,24 @@
 		        } else {
 		        	reward = 1;
 		        }
-		    } else if (stat === 1) { // ユーザ：チョキ
-				if (act === 0) {
-					reward = 1;
-				} else if (act === 1) {
-					reward = 0;
-				} else {
-					reward = -1;
-				}
-		    } else { // ユーザ：パー
-				if (act === 0) {
-					reward = -1;
-				} else if (act === 1) {
-					reward = 1;
-				} else {
-					reward = 0;
-				}
-		    }
-			return reward;
+		} else if (stat === 1) { // ユーザ：チョキ
+			if (act === 0) {
+				reward = 1;
+			} else if (act === 1) {
+				reward = 0;
+			} else {
+				reward = -1;
+			}
+		} else { // ユーザ：パー
+			if (act === 0) {
+				reward = -1;
+			} else if (act === 1) {
+				reward = 1;
+			} else {
+				reward = 0;
+			}
+		 }
+		return reward;
 	    }
 
 	    // ユーザがボタンをクリックしたときの処理
@@ -193,11 +193,11 @@
 	      // 報酬の判定(ひとつ前の状態で報酬を判定)
 	      let reward = getReward(stat, old_act);
 
-		  // 勝ち負け判定
-		  WinLossText = rewardString(reward);
-		  document.getElementById("WinLoss").textContent = WinLossText;
-		  CPUText = "(CPU: " + actionString(old_act) + ")\n";
-		  document.getElementById("cpu").textContent = CPUText;
+	     // 勝ち負け判定
+   	     WinLossText = rewardString(reward);
+	     document.getElementById("WinLoss").textContent = WinLossText;
+	     CPUText = "(CPU: " + actionString(old_act) + ")\n";
+	     document.getElementById("cpu").textContent = CPUText;
 
 	      // Q学習による価値更新計算
 	      // Q = (1 - a) * 旧状態の価値 + a * (reward + r * 現状態の価値)
@@ -205,7 +205,6 @@
 
 	      // 価値テーブル更新（前状態・前行動）
 	      setValueTable(Q, old_stat, old_act);
-		  //setValueTable(Q, stat, act);
 		  
 	      // 状態更新
 	      old_stat = stat;
