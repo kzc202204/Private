@@ -181,8 +181,6 @@
 	      let e = Math.random();
 	      //resultText += "乱数: " + e.toFixed(2) + "\n";
           
-	      // 前の状態における行動
-	      //let [old_value, old_act] = getAction(old_stat);
 	      // 現在の状態における行動と最大価値
 	      let [value, act] = getAction(stat);
 		  
@@ -218,6 +216,7 @@
 	      resultText += "[AI脳の中]\n";
 	      resultText += "----------------\n";
 	      resultText += "epsilion: " + epsilon.toFixed(2) + "\n";
+	      resultText += "乱数: " + e.toFixed(2) + "\n";    
               resultText += "学習率: " + a.toFixed(2) + "\n";
 	      resultText += "割引率: " + r.toFixed(2) + "\n";
 	      resultText += "報酬: " + reward + "\n";
