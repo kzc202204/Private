@@ -187,13 +187,13 @@
 	      let [value, act] = getAction(stat);
 		  
 	      // ランダム判定: もし価値が乱数より低ければランダム行動を選択
-	      //if (epsilon < e) {
-	      //  resultText += "Random!\n";
-	      //  act = Math.floor(Math.random() * 3);
-	      //  value = getValueTable(stat, act);
-	      //}
+	      if (epsilon < e) {
+	        resultText += "Random!\n";
+	        act = Math.floor(Math.random() * 3);
+	        value = getValueTable(stat, act);
+	      }
 
-	      // 報酬の判定
+	      // 報酬の判定(ひとつ前の状態で報酬を判定)
 	      let reward = getReward(stat, old_act);
 
 		  // 勝ち負け判定
