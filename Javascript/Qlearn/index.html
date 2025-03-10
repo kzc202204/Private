@@ -196,7 +196,7 @@
 		  // 勝ち負け判定
 		  WinLossText = rewardString(reward);
 		  document.getElementById("WinLoss").textContent = WinLossText;
-		  CPUText = "(CPU: " + actionString(act) + ")\n";
+		  CPUText = "(CPU: " + actionString(old_act) + ")\n";
 		  document.getElementById("cpu").textContent = CPUText;
 
 	      // Q学習による価値更新計算
