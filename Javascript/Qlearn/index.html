@@ -64,8 +64,8 @@
 		
 	    // 前回の状態と行動（初期値は0）
 	    let old_stat = 0;
-	    let old_act = 0;
-		let old_value = 0;
+	    let new_act = 0;
+	    let old_value = 0;
 		
 		// -----------------------------------------------------------
 		// Function List
@@ -123,7 +123,7 @@
 
 	    // ある状態(stat)に対して、最大の価値とそのときの行動を返す関数
 	    // 戻り値：[最大値, 対応するaction]
-	    function getMaxValue(stat) {
+	    function getAction(stat) {
 	      const index = parseInt(stat, 10);
 	      let maxVal = vTable[0][index];
 	      let maxAct = 0;
@@ -177,12 +177,14 @@
 	    // ユーザがボタンをクリックしたときの処理
 	    function playRound(stat) {
 	      let resultText = "";
-		  epsilon = 0.5 * (r ** all);
+	      epsilon = 0.5 * (r ** all);
 	      let e = Math.random();
 	      //resultText += "乱数: " + e.toFixed(2) + "\n";
           
-	      // 現在の状態における最大価値と行動
-	      let [value, act] = getMaxValue(stat);
+	      // 前の状態における行動
+	      //let [old_value, old_act] = getAction(old_stat);
+	      // 現在の状態における行動と最大価値
+	      let [value, act] = getAction(stat);
 		  
 	      // ランダム判定: もし価値が乱数より低ければランダム行動を選択
 	      //if (epsilon < e) {
@@ -192,7 +194,7 @@
 	      //}
 
 	      // 報酬の判定
-	      let reward = getReward(stat, act);
+	      let reward = getReward(stat, old_act);
 
 		  // 勝ち負け判定
 		  WinLossText = rewardString(reward);
@@ -211,7 +213,7 @@
 	      // 状態更新
 	      old_stat = stat;
 	      old_act = act;
-		  old_value = value;
+	      old_value = value;
 
 	      resultText += "[AI脳の中]\n";
 	      resultText += "----------------\n";
