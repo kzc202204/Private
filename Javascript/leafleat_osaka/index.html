@@ -1,1 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>OpenMapping</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"/>
+  <style type="text/css">
+  button.btn {
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    text-decoration: none;
+    width: 600px;
+    margin: auto;
+    padding: 1rem;
+    margin: 1rem 0;
+    font-weight: bold;
+    border: 2px solid #27acd9;
+    color: #27acd9;
+    font-size: 64px;
+    transition: 0.5s;
+  }
+  button.btn:hover {
+    color: #fff;
+    background: #27acd9;
+  }
+  input.edit {
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    text-decoration: none;
+    width: 500px;
+    margin: auto;
+    padding: 1rem;
+    margin: 1rem 0;
+    border: 1px solid #27acd9;
+    color: #27acd9;
+    font-size: 32px;
+    transition: 0.5s;
+  }
+  .cpop {
+    font-size: 32px;   /* 文字サイズ変更 */
+    line-height: 1.8;
+    font-weight: bold;
+  }
+　</style>
+　<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+　/>
+</head>
+
+<body>
+  <div id="mapid" style="width: 100%; height: 1200px"></div>
+  <center><button class="btn" onclick="getPosition();viewReload();">現在地を記録</button></center>
+  <center><input type="text" id="memo" class="edit" placeholder="コメント"></center>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.11/jquery.csv.min.js"></script>
+
+  
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-sprite@1.0.0/dist/leaflet.sprite.min.js"></script>
+  <script>
+
+	// -------------------------------------------------------------------------
+	// Initialize 
+	// -------------------------------------------------------------------------
+    prePos = {
+      latitude: 0,
+      longitude: 0,
+    };
+    
+    //パラメタ取得
+    let param_col = <?= JSON.stringify(col || "") ?>;
+    param_col = param_col.replace(/^"|"$/g, '');
+
+    //デフォルトの表示位置を選択
+    var map = L.map('mapid').setView([34.648990, 135.383486], 17);
+
+    L.Icon.Default.imagePath = 'https://unpkg.com/leaflet@1.9.4/dist/images/';
+
+    //右下にリンクを表示
+    var gsi = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+      attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>地理院タイル</a>"
+    });
+    
+    //右下にリンクを表示
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: "<a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a>"
+    });
+
+    //右上に地図種類の選択ボタンを表示
+    var baseMaps = {
+      "地理院地図" : gsi,
+      "OpenStreetMap" : osm
+    };
+    L.control.layers(baseMaps).addTo(map);
+    osm.addTo(map);
+    
+	//文字コードを設定
+	$.ajaxSetup({
+		beforeSend: function(xhr){
+			xhr.overrideMimeType("text/html;charset=Shift_JIS");
+		}
+	});
+	
+	// -------------------------------------------------------------------------
+	// Function List
+	// -------------------------------------------------------------------------
+	function viewReload()
+  {
+    google.script.run
+      .withSuccessHandler(result).getScriptURL();
+      function result(url){
+        window.open(url, '_top')
+      }
+  }
+  
+  function setViewPoint(lati, long, col, text)
+	{
+		var marker = L.marker([lati, long], {icon: L.spriteIcon(col)}).addTo(map);
+		marker.bindPopup('<div class="cpop">' + text + '</div>');
+	}
+	
+	//データを地図上に表示する
+	function dataMapping(locationData)
+	{
+		//画面表示
+		for (let i = 0; i < locationData.length; i++) {
+			setViewPoint(locationData[i][0], locationData[i][1], locationData[i][2], locationData[i][3]);
+		}
+	}
+	
+  // 位置情報の記録
+  function setRecord2(lati, long, col, comment) 
+  {
+    google.script.run
+    .withSuccessHandler(function(response) {
+      //画面再描画
+      viewReload();
+    })
+    .withFailureHandler(function(error) {
+      alert("Error: setRecord");
+    })
+    .doSetRecord2(lati, long, col, comment);
+  }
+
+  /* -------------------------------------- */
+  /* 現在の位置情報を取得 */
+  /* -------------------------------------- */
+  async function getPosition() {
+      return new Promise(resolve => navigator.geolocation.getCurrentPosition(onSuccess, onError));
+  }
+
+  function onSuccess(position)
+  {
+    if ( prePos.latitude == 0 || prePos.latitude != position.latitude || prePos.longitude != position.longitude)
+    {
+      // 位置を記録しておく         
+      prePos.latitude = position.coords.latitude;
+      prePos.longitude = position.coords.longitude;
+      // コメントを取得する
+      let comment = document.getElementById('memo').value;
+      
+      // 記録
+      setRecord2(prePos.latitude, prePos.longitude, param_col, comment);
+    }
+  }
+
+  function onError(err) {
+    alert(`ERROR(${err.code}): ${err.message}`);
+  }
+
+  /* -------------------------------------- */
+  /* 記録情報を取得して描画 */
+  /* -------------------------------------- */
+  function getDataList()
+  {
+    google.script.run
+    .withSuccessHandler(function(response) {
+      const jsonData = JSON.parse(response);
+      let dataList=[];
+      for(i=0; i < jsonData.length; i++){
+        dataList.push([parseFloat(jsonData[i].lati), parseFloat(jsonData[i].long), jsonData[i].color, jsonData[i].comment]);
+      }
+
+      //地図上にMapping
+      dataMapping(dataList);
+    })
+    .withFailureHandler(function(error) {
+      alert("Error: getRecord");
+    })
+    .doGetRecordJSON();
+  }
+
+	//CSVデータより必要なカラムを配列に格納して返す
+	function getColumnData(fromLine, indexList)
+	{
+		toLine = [];
+		for (let i = 0; i < indexList.length; i++) {
+			toLine[i] = fromLine[indexList[i]];
+		}
+		
+		return toLine;
+	}
+	
+	// -------------------------------------------------------------------------
+	// Main Function
+	// -------------------------------------------------------------------------
+	// 表示データの取得
+	getDataList();
+	
+  </script>
+</body>
+</html>
 
