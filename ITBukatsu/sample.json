@@ -1,1 +1,7 @@
-{"max":35 , "min":25, "temp": 30, "humi": 60, "city": "kanazawa"}
+{ "kanazawa": {"max":33 , "min":24, "humi": 53, "rain": 20 },
+   "tokyo":   {"max":31 , "min":23, "humi": 63, "rain": 0 },
+   "osaka":   {"max":31 , "min":25, "humi": 61, "rain": 10 },
+   "nagoya":  {"max":32 , "min":24, "humi": 55, "rain": 10 },
+   "fukuoka": {"max":31 , "min":28, "humi": 66, "rain": 20 },
+   "sapporo": {"max":25 , "min":21, "humi": 76, "rain": 90 },
+}
